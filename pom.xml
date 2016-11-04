@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fc</groupId>
 	<artifactId>fc-tidsserie</artifactId>
@@ -7,6 +8,14 @@
 	<name>fc-tidsserie</name>
 	<description>fc timeseries lib</description>
 	<packaging>jar</packaging>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
 	<properties>
 		<additionalparam>-Xdoclint:none</additionalparam>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -38,8 +47,8 @@
 		<connection>scm:git:undefined</connection>
 		<developerConnection>scm:git:undefined</developerConnection>
 		<url>scm:git:undefined</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<distributionManagement>
 		<repository>
@@ -64,10 +73,10 @@
 		</dependency>
 
 		<dependency>
-		  <groupId>org.assertj</groupId>
-		  <artifactId>assertj-core</artifactId>
-		  <version>3.5.2</version>
-		  <scope>test</scope>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.5.2</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -76,11 +85,11 @@
 			<version>2.9.4</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
-		  <groupId>org.threeten</groupId>
-		  <artifactId>threeten-extra</artifactId>
-		  <version>1.0</version>
+			<groupId>org.threeten</groupId>
+			<artifactId>threeten-extra</artifactId>
+			<version>1.0</version>
 		</dependency>
 
 	</dependencies>
