@@ -30,10 +30,10 @@ public class Operators {
 
     public static final BinaryOperator<Number> MINUS = new NamedBinaryOperator<Number>("+", (v1, v2) -> STANDARD_NUMBER_CALC.minus(v1, v2));
 
-    public static final BinaryOperator<Number> MULTIPLY = new NamedBinaryOperator<Number>("+",
+    public static final BinaryOperator<Number> MULTIPLY = new NamedBinaryOperator<Number>("*",
             (v1, v2) -> STANDARD_NUMBER_CALC.multiply(v1, v2));
 
-    public static final BinaryOperator<Number> DIVIDE = new NamedBinaryOperator<Number>("+",
+    public static final BinaryOperator<Number> DIVIDE = new NamedBinaryOperator<Number>("/",
             (v1, v2) -> STANDARD_NUMBER_CALC.divide(v1, v2));
 
 }
