@@ -39,7 +39,7 @@ class Timesegment<V> implements Serializable, ValueFunction<V> {
     private final ValueFunction<V> valueFunction;
 
     Timesegment(Interval interval, V value) {
-        this(interval, Operators.value(value));
+        this(interval, OperatorValueFunctions.value(value));
     }
 
     Timesegment(Interval interval, ValueFunction<V> valueFunction) {

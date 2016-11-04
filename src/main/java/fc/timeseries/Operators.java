@@ -1,166 +1,39 @@
-/**
- *   Copyright 2016- Frode Carlsen
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package fc.timeseries;
 
-import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
+import fc.timeseries.OperatorValueFunctions.NamedBinaryOperator;
+import fc.timeseries.OperatorValueFunctions.NamedUnaryOperator;
+
 /**
- * Common {@link ValueFunction} and matching operations.
+ * Standard operators on timeseries. Can handle both {@link Number} and {@link Boolean} datatypes.
+ * Others are pluggable through {@link BinaryOperator} or {@link UnaryOperator}.
  */
-class Operators {
+public class Operators {
 
-    /**
-     * A {@link ValueFunction} that combines two other functions through a {@link BinaryOperator}.
-     *
-     * @param <V>
-     *            the datatype used in the {@link Timeline}
-     */
-    static class BinaryOperatorFunction<V> implements ValueFunction<V> {
-        private final BinaryOperator<V> ops;
-        private final ValueFunction<V> lhs;
-        private final ValueFunction<V> rhs;
+    private static final StandardNumberCalculator STANDARD_NUMBER_CALC = new StandardNumberCalculator();
 
-        BinaryOperatorFunction(BinaryOperator<V> ops, ValueFunction<V> lhs, ValueFunction<V> rhs) {
-            this.ops = ops;
-            this.lhs = lhs;
-            this.rhs = rhs;
-        }
+    public static final BinaryOperator<Boolean> AND = new NamedBinaryOperator<Boolean>("and", (t, u) -> t && u);
 
-        @Override
-        public V valueAt(long key) {
-            return ops.apply(lhs.valueAt(key), rhs.valueAt(key));
-        }
+    public static final BinaryOperator<Boolean> OR = new NamedBinaryOperator<Boolean>("or", (t, u) -> t || u);
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(ops, lhs, rhs);
-        }
+    public static final BinaryOperator<Boolean> XOR = new NamedBinaryOperator<Boolean>("xor", (t, u) -> t ^ u);
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(Objects.equals(this.getClass(), obj.getClass()))) {
-                return false;
-            }
-            BinaryOperatorFunction<?> other = (BinaryOperatorFunction<?>) obj;
-            return Objects.equals(ops, other.ops) && Objects.equals(lhs, other.lhs) && Objects.equals(rhs, other.rhs);
-        }
-    }
+    public static final UnaryOperator<Boolean> NOT = new NamedUnaryOperator<Boolean>("not", (t) -> !t);
 
-    /**
-     * A value function of a constant expression (example a number such as 2.0d)
-     *
-     * @param <V>
-     *            the datatype used in the timeline.
-     */
-    static class ConstantValueFunction<V> implements ValueFunction<V> {
+    public static final UnaryOperator<Number> ABS = new NamedUnaryOperator<Number>("abs", (v) -> STANDARD_NUMBER_CALC.abs(v));
 
-        private V value;
+    public static final UnaryOperator<Number> NEGATE = new NamedUnaryOperator<Number>("neg", (v) -> STANDARD_NUMBER_CALC.negate(v));
 
-        public ConstantValueFunction(V value) {
-            this.value = value;
-        }
+    public static final BinaryOperator<Number> PLUS = new NamedBinaryOperator<Number>("+", (v1, v2) -> STANDARD_NUMBER_CALC.plus(v1, v2));
 
-        @Override
-        public V valueAt(long key) {
-            return value;
-        }
+    public static final BinaryOperator<Number> MINUS = new NamedBinaryOperator<Number>("+", (v1, v2) -> STANDARD_NUMBER_CALC.minus(v1, v2));
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(value);
-        }
+    public static final BinaryOperator<Number> MULTIPLY = new NamedBinaryOperator<Number>("+",
+            (v1, v2) -> STANDARD_NUMBER_CALC.multiply(v1, v2));
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(Objects.equals(this.getClass(), obj.getClass()))) {
-                return false;
-            }
-            ConstantValueFunction<?> other = (ConstantValueFunction<?>) obj;
-            return Objects.equals(value, other.value);
-        }
-    }
+    public static final BinaryOperator<Number> DIVIDE = new NamedBinaryOperator<Number>("+",
+            (v1, v2) -> STANDARD_NUMBER_CALC.divide(v1, v2));
 
-    static <V> ValueFunction<V> value(V value) {
-        return new ConstantValueFunction<V>(value);
-    }
-
-
-    static class NamedBinaryOperator<V> implements BinaryOperator<V> {
-
-        private BinaryOperator<V> op;
-        private String name;
-
-        NamedBinaryOperator(String name, BinaryOperator<V> op) {
-            this.name = name;
-            this.op = op;
-        }
-
-        @Override
-        public V apply(V t, V u) {
-            return op.apply(t, u);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(Objects.equals(getClass(), obj.getClass()))) {
-                return false;
-            }
-
-            NamedBinaryOperator<?> other = (NamedBinaryOperator<?>) obj;
-            return Objects.equals(name, other.name);
-        }
-
-    }
-
-    static class NamedUnaryOperator<V> implements UnaryOperator<V> {
-
-        private UnaryOperator<V> op;
-        private String name;
-
-        NamedUnaryOperator(String name, UnaryOperator<V> op) {
-            this.name = name;
-            this.op = op;
-        }
-
-        @Override
-        public V apply(V t) {
-            return op.apply(t);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(name);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(Objects.equals(getClass(), obj.getClass()))) {
-                return false;
-            }
-
-            NamedUnaryOperator<?> other = (NamedUnaryOperator<?>) obj;
-            return Objects.equals(name, other.name);
-        }
-
-    }
 }

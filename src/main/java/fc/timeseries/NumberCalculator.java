@@ -18,8 +18,8 @@ package fc.timeseries;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
-import fc.timeseries.Operators.NamedBinaryOperator;
-import fc.timeseries.Operators.NamedUnaryOperator;
+import fc.timeseries.OperatorValueFunctions.NamedBinaryOperator;
+import fc.timeseries.OperatorValueFunctions.NamedUnaryOperator;
 
 /**
  * A calculator that can combine Number datatypes as they are used on a {@link Timeline}.
