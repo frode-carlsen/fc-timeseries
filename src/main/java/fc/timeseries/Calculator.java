@@ -1,0 +1,119 @@
+package fc.timeseries;
+
+import java.util.Objects;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
+
+public interface Calculator<V> {
+
+    V plus(V v1, V v2);
+
+    V multiply(V v1, V v2);
+
+    V divide(V v1, V v2);
+
+    V minus(V v1, V v2);
+
+    V abs(V v1);
+
+    V negate(V v1);
+
+    V convertToValue(Object otherValue);
+
+    public static <V> BinaryOperator<V> plus(Calculator<V> calc) {
+        return named("+", (t, u) -> calc.plus(t, u));
+    }
+
+    public static <V> BinaryOperator<V> minus(Calculator<V> calc) {
+        return named("-", (t, u) -> calc.minus(t, u));
+    }
+
+    public static <V> BinaryOperator<V> multiply(Calculator<V> calc) {
+        return named("*", (t, u) -> calc.multiply(t, u));
+    }
+
+    public static <V> BinaryOperator<V> divide(Calculator<V> calc) {
+        return named("/", (t, u) -> calc.divide(t, u));
+    }
+
+    public static <V> UnaryOperator<V> abs(Calculator<V> calc) {
+        return named("abs", (t) -> calc.abs(t));
+    }
+
+    public static <V> UnaryOperator<V> negate(Calculator<V> calc) {
+        return named("neg", (t) -> calc.negate(t));
+    }
+
+    static <V> BinaryOperator<V> named(String name, BinaryOperator<V> op) {
+        return new NamedBinaryOperator<V>(name, op);
+    }
+
+    static <V> UnaryOperator<V> named(String name, UnaryOperator<V> op) {
+        return new NamedUnaryOperator<V>(name, op);
+    }
+
+    static class NamedBinaryOperator<V> implements BinaryOperator<V> {
+
+        private BinaryOperator<V> op;
+        private String name;
+
+        NamedBinaryOperator(String name, BinaryOperator<V> op) {
+            this.name = name;
+            this.op = op;
+        }
+
+        @Override
+        public V apply(V t, V u) {
+            return op.apply(t, u);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(Objects.equals(getClass(), obj.getClass()))) {
+                return false;
+            }
+
+            NamedBinaryOperator<?> other = (NamedBinaryOperator<?>) obj;
+            return Objects.equals(name, other.name);
+        }
+
+    }
+
+    static class NamedUnaryOperator<V> implements UnaryOperator<V> {
+
+        private UnaryOperator<V> op;
+        private String name;
+
+        NamedUnaryOperator(String name, UnaryOperator<V> op) {
+            this.name = name;
+            this.op = op;
+        }
+
+        @Override
+        public V apply(V t) {
+            return op.apply(t);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(Objects.equals(getClass(), obj.getClass()))) {
+                return false;
+            }
+
+            NamedUnaryOperator<?> other = (NamedUnaryOperator<?>) obj;
+            return Objects.equals(name, other.name);
+        }
+
+    }
+
+}
