@@ -16,7 +16,7 @@
 package fc.timeseries;
 
 /**
- * Simple function of one variable (time).
+ * Simple function of one variable (time). Represents a time-variant function.
  */
 public interface ValueFunction<V> {
 

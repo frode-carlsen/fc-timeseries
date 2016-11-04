@@ -19,53 +19,86 @@ import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
-public interface Calculator<V> {
+/**
+ * Common {@link ValueFunction} and matching operations.
+ */
+class Operators {
 
-    V plus(V v1, V v2);
+    /**
+     * A {@link ValueFunction} that combines two other functions through a {@link BinaryOperator}.
+     *
+     * @param <V>
+     *            the datatype used in the {@link Timeline}
+     */
+    static class BinaryOperatorFunction<V> implements ValueFunction<V> {
+        private final BinaryOperator<V> ops;
+        private final ValueFunction<V> lhs;
+        private final ValueFunction<V> rhs;
 
-    V multiply(V v1, V v2);
+        BinaryOperatorFunction(BinaryOperator<V> ops, ValueFunction<V> lhs, ValueFunction<V> rhs) {
+            this.ops = ops;
+            this.lhs = lhs;
+            this.rhs = rhs;
+        }
 
-    V divide(V v1, V v2);
+        @Override
+        public V valueAt(long key) {
+            return ops.apply(lhs.valueAt(key), rhs.valueAt(key));
+        }
 
-    V minus(V v1, V v2);
+        @Override
+        public int hashCode() {
+            return Objects.hash(ops, lhs, rhs);
+        }
 
-    V abs(V v1);
-
-    V negate(V v1);
-
-    V convertToValue(Object otherValue);
-
-    public static <V> BinaryOperator<V> plus(Calculator<V> calc) {
-        return named("+", (t, u) -> calc.plus(t, u));
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(Objects.equals(this.getClass(), obj.getClass()))) {
+                return false;
+            }
+            BinaryOperatorFunction<?> other = (BinaryOperatorFunction<?>) obj;
+            return Objects.equals(ops, other.ops) && Objects.equals(lhs, other.lhs) && Objects.equals(rhs, other.rhs);
+        }
     }
 
-    public static <V> BinaryOperator<V> minus(Calculator<V> calc) {
-        return named("-", (t, u) -> calc.minus(t, u));
+    /**
+     * A value function of a constant expression (example a number such as 2.0d)
+     *
+     * @param <V>
+     *            the datatype used in the timeline.
+     */
+    static class ConstantValueFunction<V> implements ValueFunction<V> {
+
+        private V value;
+
+        public ConstantValueFunction(V value) {
+            this.value = value;
+        }
+
+        @Override
+        public V valueAt(long key) {
+            return value;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(value);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || !(Objects.equals(this.getClass(), obj.getClass()))) {
+                return false;
+            }
+            ConstantValueFunction<?> other = (ConstantValueFunction<?>) obj;
+            return Objects.equals(value, other.value);
+        }
     }
 
-    public static <V> BinaryOperator<V> multiply(Calculator<V> calc) {
-        return named("*", (t, u) -> calc.multiply(t, u));
+    static <V> ValueFunction<V> value(V value) {
+        return new ConstantValueFunction<V>(value);
     }
 
-    public static <V> BinaryOperator<V> divide(Calculator<V> calc) {
-        return named("/", (t, u) -> calc.divide(t, u));
-    }
-
-    public static <V> UnaryOperator<V> abs(Calculator<V> calc) {
-        return named("abs", (t) -> calc.abs(t));
-    }
-
-    public static <V> UnaryOperator<V> negate(Calculator<V> calc) {
-        return named("neg", (t) -> calc.negate(t));
-    }
-
-    static <V> BinaryOperator<V> named(String name, BinaryOperator<V> op) {
-        return new NamedBinaryOperator<V>(name, op);
-    }
-
-    static <V> UnaryOperator<V> named(String name, UnaryOperator<V> op) {
-        return new NamedUnaryOperator<V>(name, op);
-    }
 
     static class NamedBinaryOperator<V> implements BinaryOperator<V> {
 
@@ -130,5 +163,4 @@ public interface Calculator<V> {
         }
 
     }
-
 }

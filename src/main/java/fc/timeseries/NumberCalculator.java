@@ -15,305 +15,63 @@
  */
 package fc.timeseries;
 
-import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
 
-public class NumberCalculator implements Calculator<Number> {
+import fc.timeseries.Operators.NamedBinaryOperator;
+import fc.timeseries.Operators.NamedUnaryOperator;
 
-    private static final Map<Class<?>, Calculator<Number>> PREFERRENCE_ORDERED_VALUE_CALCULATORS;
+/**
+ * A calculator that can combine Number datatypes as they are used on a {@link Timeline}.
+ * {@link StandardNumberCalculator} can handle most Number datatypes for ease-of-use.
+ */
+public interface NumberCalculator {
 
-    static {
+    Number plus(Number v1, Number v2);
 
-        Map<Class<?>, Calculator<Number>> map = new LinkedHashMap<>();
+    Number multiply(Number v1, Number v2);
 
-        map.put(BigDecimal.class, new BigDecimalCalculator());
-        map.put(Double.class, new DoubleCalculator());
-        map.put(Float.class, new FloatCalculator());
-        map.put(Long.class, new LongCalculator());
-        map.put(Integer.class, new IntegerCalculator());
+    Number divide(Number v1, Number v2);
 
-        PREFERRENCE_ORDERED_VALUE_CALCULATORS = map;
+    Number minus(Number v1, Number v2);
+
+    Number abs(Number v1);
+
+    Number negate(Number v1);
+
+    Number convertToValue(Object otherValue);
+
+    public static BinaryOperator<Number> plus(NumberCalculator calc) {
+        return named("+", (t, u) -> calc.plus(t, u));
     }
 
-    private static boolean anyOfType(Class<?> cls, Number v1, Number v2) {
-        return Objects.equals(cls, v1.getClass()) || (v2 != null && Objects.equals(cls, v2.getClass()));
+    public static BinaryOperator<Number> minus(NumberCalculator calc) {
+        return named("-", (t, u) -> calc.minus(t, u));
     }
 
-    private static BigDecimal toBigDecimal(Number v1) {
-        return BigDecimal.valueOf(v1.doubleValue());
+    public static BinaryOperator<Number> multiply(NumberCalculator calc) {
+        return named("*", (t, u) -> calc.multiply(t, u));
     }
 
-    static Calculator<Number> getPreferredValueCalculator(Number v1, Number v2) {
-        for (Map.Entry<Class<?>, Calculator<Number>> entry : PREFERRENCE_ORDERED_VALUE_CALCULATORS.entrySet()) {
-            if (anyOfType(entry.getKey(), v1, v2)) {
-                return entry.getValue();
-            }
-        }
-        throw new IllegalArgumentException("No matching value calculator found for types: [" + v1 + ", " + v2 + "]");
+    public static BinaryOperator<Number> divide(NumberCalculator calc) {
+        return named("/", (t, u) -> calc.divide(t, u));
     }
 
-    @Override
-    public Number plus(Number v1, Number v2) {
-        return getPreferredValueCalculator(v1, v2).plus(v1, v2);
+    public static UnaryOperator<Number> abs(NumberCalculator calc) {
+        return named("abs", (t) -> calc.abs(t));
     }
 
-    @Override
-    public Number multiply(Number v1, Number v2) {
-        return getPreferredValueCalculator(v1, v2).multiply(v1, v2);
+    public static UnaryOperator<Number> negate(NumberCalculator calc) {
+        return named("neg", (t) -> calc.negate(t));
     }
 
-    @Override
-    public Number divide(Number v1, Number v2) {
-        return getPreferredValueCalculator(v1, v2).divide(v1, v2);
+    static BinaryOperator<Number> named(String name, BinaryOperator<Number> op) {
+        return new NamedBinaryOperator<Number>(name, op);
     }
 
-    @Override
-    public Number minus(Number v1, Number v2) {
-        return getPreferredValueCalculator(v1, v2).minus(v1, v2);
+    static UnaryOperator<Number> named(String name, UnaryOperator<Number> op) {
+        return new NamedUnaryOperator<Number>(name, op);
     }
 
-    @Override
-    public Number abs(Number v1) {
-        return getPreferredValueCalculator(v1, null).abs(v1);
-    }
-
-    @Override
-    public Number negate(Number v1) {
-        return getPreferredValueCalculator(v1, null).negate(v1);
-    }
-
-    @Override
-    public Number convertToValue(Object verdi) {
-        if (verdi == null || verdi instanceof Number) {
-            return (Number) verdi;
-        }
-        if (verdi instanceof String) {
-            try {
-                return new BigDecimal((String) verdi);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid conversion from" + verdi + " til BigDecimal", e); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-        }
-        throw new IllegalArgumentException("No valid conversion from " + verdi + " til BigDecimal"); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-
-    private static class LongCalculator implements Calculator<Number> {
-
-        @Override
-        public Number plus(Number v1, Number v2) {
-            return convertToValue(v1) + convertToValue(v2);
-        }
-
-        @Override
-        public Number multiply(Number v1, Number v2) {
-            return convertToValue(v1) * convertToValue(v2);
-        }
-
-        @Override
-        public Number divide(Number v1, Number v2) {
-            return convertToValue(v1) / convertToValue(v2);
-        }
-
-        @Override
-        public Number minus(Number v1, Number v2) {
-            return convertToValue(v1) - convertToValue(v2);
-        }
-
-        @Override
-        public Number abs(Number v1) {
-            return Math.abs(convertToValue(v1));
-        }
-
-        @Override
-        public Number negate(Number v1) {
-            return Math.negateExact(convertToValue(v1));
-        }
-
-        @Override
-        public Long convertToValue(Object v) {
-            if (v instanceof Long) {
-                return (Long) v;
-            } else {
-                return ((Number) v).longValue();
-            }
-        }
-
-    }
-
-    private static class DoubleCalculator implements Calculator<Number> {
-
-        @Override
-        public Number plus(Number v1, Number v2) {
-            return convertToValue(v1) + convertToValue(v2);
-        }
-
-        @Override
-        public Number multiply(Number v1, Number v2) {
-            return convertToValue(v1) * convertToValue(v2);
-        }
-
-        @Override
-        public Number divide(Number v1, Number v2) {
-            return convertToValue(v1) / convertToValue(v2);
-        }
-
-        @Override
-        public Number minus(Number v1, Number v2) {
-            return convertToValue(v1) - convertToValue(v2);
-        }
-
-        @Override
-        public Number abs(Number v1) {
-            return Math.abs(convertToValue(v1));
-        }
-
-        @Override
-        public Number negate(Number v1) {
-            return -1L * (convertToValue(v1));
-        }
-
-        @Override
-        public Double convertToValue(Object v) {
-            if (v instanceof Double) {
-                return (Double) v;
-            } else {
-                return ((Number) v).doubleValue();
-            }
-        }
-
-    }
-
-    private static class IntegerCalculator implements Calculator<Number> {
-
-        @Override
-        public Number plus(Number v1, Number v2) {
-            return convertToValue(v1) + convertToValue(v2);
-        }
-
-        @Override
-        public Number multiply(Number v1, Number v2) {
-            return convertToValue(v1) * convertToValue(v2);
-        }
-
-        @Override
-        public Number divide(Number v1, Number v2) {
-            return convertToValue(v1) / convertToValue(v2);
-        }
-
-        @Override
-        public Number minus(Number v1, Number v2) {
-            return convertToValue(v1) - convertToValue(v2);
-        }
-
-        @Override
-        public Number abs(Number v1) {
-            return Math.abs(convertToValue(v1));
-        }
-
-        @Override
-        public Number negate(Number v1) {
-            return Math.negateExact(convertToValue(v1));
-        }
-
-        @Override
-        public Integer convertToValue(Object v) {
-            if (v instanceof Integer) {
-                return (Integer) v;
-            } else {
-                return ((Number) v).intValue();
-            }
-        }
-
-    }
-
-    private static class FloatCalculator implements Calculator<Number> {
-
-        @Override
-        public Number plus(Number v1, Number v2) {
-            return convertToValue(v1) + convertToValue(v2);
-        }
-
-        @Override
-        public Number multiply(Number v1, Number v2) {
-            return convertToValue(v1) * convertToValue(v2);
-        }
-
-        @Override
-        public Number divide(Number v1, Number v2) {
-            return convertToValue(v1) / convertToValue(v2);
-        }
-
-        @Override
-        public Number minus(Number v1, Number v2) {
-            return convertToValue(v1) - convertToValue(v2);
-        }
-
-        @Override
-        public Number abs(Number v1) {
-            return Math.abs(convertToValue(v1));
-        }
-
-        @Override
-        public Number negate(Number v1) {
-            return -1f * (convertToValue(v1));
-        }
-
-        @Override
-        public Float convertToValue(Object v) {
-            if (v instanceof Float) {
-                return (Float) v;
-            } else {
-                return ((Number) v).floatValue();
-            }
-        }
-
-    }
-
-    private static class BigDecimalCalculator implements Calculator<Number> {
-
-        @Override
-        public Number plus(Number v1, Number v2) {
-            return convertToValue(v1).add(convertToValue(v2));
-        }
-
-        @Override
-        public Number multiply(Number v1, Number v2) {
-            // TODO: mathcontext?
-            return convertToValue(v1).multiply(convertToValue(v2));
-        }
-
-        @Override
-        public Number divide(Number v1, Number v2) {
-            // TODO: scale + roundingMode?
-            return convertToValue(v1).divide(convertToValue(v2));
-        }
-
-        @Override
-        public Number minus(Number v1, Number v2) {
-            return convertToValue(v1).subtract(convertToValue(v2));
-        }
-
-        @Override
-        public Number abs(Number v1) {
-            return convertToValue(v1).abs();
-        }
-
-        @Override
-        public Number negate(Number v1) {
-            return convertToValue(v1).negate();
-        }
-
-        @Override
-        public BigDecimal convertToValue(Object v) {
-            if (v instanceof BigDecimal) {
-                return (BigDecimal) v;
-            } else {
-                return toBigDecimal((Number) v);
-            }
-        }
-
-    }
 
 }

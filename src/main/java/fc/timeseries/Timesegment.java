@@ -28,13 +28,18 @@ import java.util.stream.Collectors;
 
 import org.threeten.extra.Interval;
 
+/**
+ * Represents a segment of a timeline, that may have a time-variant function (or be constant).
+ *
+ * @param <V> datatype on the timeline.
+ */
 class Timesegment<V> implements Serializable, ValueFunction<V> {
 
     private final Interval interval;
     private final ValueFunction<V> valueFunction;
 
     Timesegment(Interval interval, V value) {
-        this(interval, TimesegmentOperations.value(value));
+        this(interval, Operators.value(value));
     }
 
     Timesegment(Interval interval, ValueFunction<V> valueFunction) {
@@ -151,7 +156,7 @@ class Timesegment<V> implements Serializable, ValueFunction<V> {
         }
     }
 
-    static <V> List<Timesegment<V>> combineUnordered(BinaryOperator<V> op, Collection<Timesegment<V>> segments) {
+    static <V> List<Timesegment<V>> combineAndOrderUnorderedSegments(BinaryOperator<V> op, Collection<Timesegment<V>> segments) {
         Collection<Interval> intervals = IntervalUtil
                 .disjoinIntervals(segments.stream().map(s -> s.getInterval()).collect(Collectors.toList()));
 

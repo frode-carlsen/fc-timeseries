@@ -19,12 +19,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BinaryOperator;
 
 /**
  * A timeline consisting of many segments
  *
  * @param <V>
- *            type of values on the timeline.
+ *            datatype used on the timeline. Must be supported by an appropriate calculator (e.g
+ *            {@link StandardNumberCalculator}).
  */
 public class Timeline<V> {
 
@@ -58,18 +60,21 @@ public class Timeline<V> {
         return Objects.equals(segments, other.segments);
     }
 
-    public static <V> Timeline<V> ofDisjointAndOrdered(Collection<Timesegment<V>> segments) {
+    /**
+     * Optimitized for when caller knows segments are not overlapping and are ordered by time.
+     */
+    public static <V> Timeline<V> ofDisjointAndOrderedSegments(Collection<Timesegment<V>> segments) {
         return new Timeline<>(segments);
     }
 
     @SafeVarargs
-    public static <V> Timeline<V> ofUnordered(Calculator<V> calc, Timesegment<V>... segments) {
-        return ofUnordered(calc, Arrays.asList(segments));
+    public static <V> Timeline<V> ofUnordered(BinaryOperator<V> op, Timesegment<V>... segments) {
+        return Timeline.ofUnorderedSegments(op, Arrays.asList(segments));
     }
 
-    public static <V> Timeline<V> ofUnordered(Calculator<V> calc, Collection<Timesegment<V>> segments) {
-        List<Timesegment<V>> combinedSegments = Timesegment.combineUnordered(Calculator.plus(calc), segments);
-        return Timeline.ofDisjointAndOrdered(combinedSegments);
+    public static <V> Timeline<V> ofUnorderedSegments(BinaryOperator<V> op, Collection<Timesegment<V>> segments) {
+        List<Timesegment<V>> combined = Timesegment.combineAndOrderUnorderedSegments(op, segments);
+        return Timeline.ofDisjointAndOrderedSegments(combined);
     }
 
 }

@@ -29,7 +29,7 @@ public class TimelineTest {
                 new Timesegment<>(interval_10, 2.0d),
                 new Timesegment<>(interval_11, 5.0d));
 
-        Timeline<Number> actual = Timeline.ofUnordered(new NumberCalculator(),
+        Timeline<Number> actual = Timeline.ofUnordered(NumberCalculator.plus(new StandardNumberCalculator()),
                 new Timesegment<>(interval_10, 2.0d),
                 new Timesegment<>(interval_11, 5.0d));
 
@@ -51,7 +51,7 @@ public class TimelineTest {
                 new Timesegment<>(interval_11_12, 7.0d),
                 new Timesegment<>(interval_12_13, 5.0d));
 
-        Timeline<Number> actual = Timeline.ofUnordered(new NumberCalculator(),
+        Timeline<Number> actual = Timeline.ofUnordered(NumberCalculator.plus(new StandardNumberCalculator()),
                 new Timesegment<>(interval_10_12, 2.0),
                 new Timesegment<>(interval_11_13, 5.0d));
 
