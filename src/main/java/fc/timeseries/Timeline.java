@@ -15,11 +15,17 @@
  */
 package fc.timeseries;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
+
+import org.threeten.extra.Interval;
+
+import fc.timeseries.OperatorValueFunctions.BinaryValueFunction;
 
 /**
  * A timeline consisting of many segments
@@ -60,6 +66,45 @@ public class Timeline<V> {
         return Objects.equals(segments, other.segments);
     }
 
+    static <V> List<Timesegment<V>> combineAndOrderUnorderedSegments(BinaryOperator<V> op,
+            Collection<Timesegment<V>> segments) {
+        Collection<Interval> intervals = IntervalUtil
+                .disjoinIntervals(segments.stream().map(s -> s.getInterval()).collect(Collectors.toList()));
+
+        return partitionSegmentsByIntervals(op, segments, intervals);
+    }
+
+    static <V> List<Timesegment<V>> partitionSegmentsByIntervals(BinaryOperator<V> op,
+            Collection<Timesegment<V>> segments, Collection<Interval> intervals) {
+        List<Timesegment<V>> result = new ArrayList<>();
+
+        // O(n^2)...
+        for (Interval interval : intervals) {
+            List<Timesegment<V>> overlappingSegments = segments.stream() //
+                    .filter(s -> s.getInterval().encloses(interval)).collect(Collectors.toList());
+
+            if (overlappingSegments.isEmpty()) {
+                continue;
+            }
+
+            Timesegment<V> timesegment = overlappingSegments.get(0);
+            if (overlappingSegments.size() == 1) {
+                result.add(timesegment.createNew(interval, timesegment.getValueFunction()));
+            } else {
+                Timesegment<V> curr = timesegment;
+                ValueFunction<V> combinedFunction = curr.getValueFunction();
+                for (int i = 1, sz = overlappingSegments.size(); i < sz; i++) {
+                    Timesegment<V> next = overlappingSegments.get(i);
+                    combinedFunction = new BinaryValueFunction<>(op, combinedFunction, next.getValueFunction());
+                }
+                result.add(timesegment.createNew(interval, combinedFunction));
+            }
+
+        }
+
+        return result;
+    }
+
     /**
      * Optimitized for when caller knows segments are not overlapping and are ordered by time.
      */
@@ -73,7 +118,7 @@ public class Timeline<V> {
     }
 
     public static <V> Timeline<V> ofUnorderedSegments(BinaryOperator<V> op, Collection<Timesegment<V>> segments) {
-        List<Timesegment<V>> combined = Timesegment.combineAndOrderUnorderedSegments(op, segments);
+        List<Timesegment<V>> combined = combineAndOrderUnorderedSegments(op, segments);
         return Timeline.ofDisjointAndOrderedSegments(combined);
     }
 

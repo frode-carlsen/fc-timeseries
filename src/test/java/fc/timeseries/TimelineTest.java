@@ -13,8 +13,8 @@ public class TimelineTest {
         Interval interval_10 = TestHelper.interval("10:00", "11:00");
         Interval interval_11 = TestHelper.interval("11:00", "13:00");
 
-        Timeline<Double> line = Timeline.ofDisjointAndOrdered(new Timesegment<>(interval_10, 2.0d),
-                new Timesegment<>(interval_11, 5.0d));
+        Timeline<Double> line = Timeline.ofDisjointAndOrdered(new ValueFunctionTimesegment<>(interval_10, 2.0d),
+                new ValueFunctionTimesegment<>(interval_11, 5.0d));
 
         Assertions.assertThat(line).isNotNull();
 
@@ -26,12 +26,12 @@ public class TimelineTest {
         Interval interval_11 = TestHelper.interval("11:00", "13:00");
 
         Timeline<Double> expected = Timeline.ofDisjointAndOrdered(
-                new Timesegment<>(interval_10, 2.0d),
-                new Timesegment<>(interval_11, 5.0d));
+                new ValueFunctionTimesegment<>(interval_10, 2.0d),
+                new ValueFunctionTimesegment<>(interval_11, 5.0d));
 
         Timeline<Number> actual = Timeline.ofUnordered(Operators.PLUS,
-                new Timesegment<>(interval_10, 2.0d),
-                new Timesegment<>(interval_11, 5.0d));
+                new ValueFunctionTimesegment<>(interval_10, 2.0d),
+                new ValueFunctionTimesegment<>(interval_11, 5.0d));
 
         assertThat(actual).isEqualTo(expected);
 
@@ -47,13 +47,13 @@ public class TimelineTest {
         Interval interval_12_13 = TestHelper.interval("12:00", "13:00");
 
         Timeline<Double> expected = Timeline.ofDisjointAndOrdered(
-                new Timesegment<>(interval_10_11, 2.0d),
-                new Timesegment<>(interval_11_12, 7.0d),
-                new Timesegment<>(interval_12_13, 5.0d));
+                new ValueFunctionTimesegment<>(interval_10_11, 2.0d),
+                new ValueFunctionTimesegment<>(interval_11_12, 7.0d),
+                new ValueFunctionTimesegment<>(interval_12_13, 5.0d));
 
         Timeline<Number> actual = Timeline.ofUnordered(Operators.PLUS,
-                new Timesegment<>(interval_10_12, 2.0),
-                new Timesegment<>(interval_11_13, 5.0d));
+                new ValueFunctionTimesegment<>(interval_10_12, 2.0),
+                new ValueFunctionTimesegment<>(interval_11_13, 5.0d));
 
         assertThat(actual).isEqualTo(expected);
 

@@ -99,7 +99,6 @@ class OperatorValueFunctions {
         return new ConstantValueFunction<V>(value);
     }
 
-
     static class NamedBinaryOperator<V> implements BinaryOperator<V> {
 
         private BinaryOperator<V> op;
@@ -163,4 +162,37 @@ class OperatorValueFunctions {
         }
 
     }
+
+    static final class BinaryValueFunction<V> implements ValueFunction<V> {
+        private final BinaryOperator<V> op;
+        private final ValueFunction<V> valueFunction;
+        private final ValueFunction<V> otherValueFunction;
+
+        public BinaryValueFunction(BinaryOperator<V> op, ValueFunction<V> valueFunction, ValueFunction<V> other) {
+            this.op = op;
+            this.valueFunction = valueFunction;
+            this.otherValueFunction = other;
+        }
+
+        @Override
+        public V valueAt(long key) {
+            return op.apply(valueFunction.valueAt(key), otherValueFunction.valueAt(key));
+        }
+    }
+
+    static final class UnaryValueFunction<V> implements ValueFunction<V> {
+        private UnaryOperator<V> unaryFunction;
+        private ValueFunction<V> valueFunction;
+
+        UnaryValueFunction(UnaryOperator<V> unaryFunction, ValueFunction<V> valueFunction) {
+            this.unaryFunction = unaryFunction;
+            this.valueFunction = valueFunction;
+        }
+
+        @Override
+        public V valueAt(long key) {
+            return unaryFunction.apply(valueFunction.valueAt(key));
+        }
+    }
+
 }
