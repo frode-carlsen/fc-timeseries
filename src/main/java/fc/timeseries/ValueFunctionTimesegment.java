@@ -17,7 +17,6 @@ package fc.timeseries;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -33,7 +32,7 @@ import fc.timeseries.OperatorValueFunctions.UnaryValueFunction;
  * @param <V>
  *            datatype on the timeline.
  */
-class ValueFunctionTimesegment<V> implements Serializable, ValueFunction<V>, Timesegment<V> {
+class ValueFunctionTimesegment<V> implements Serializable, Timesegment<V> {
 
     private final Interval interval;
     private final ValueFunction<V> valueFunction;
@@ -50,32 +49,37 @@ class ValueFunctionTimesegment<V> implements Serializable, ValueFunction<V>, Tim
     @Override
     public String toString() {
         return getClass().getSimpleName() + "<" + interval + ", ["
-                + valueFunction.valueAt(interval.getStart().toEpochMilli()) + ", "
-                + valueFunction.valueAt(interval.getEnd().toEpochMilli()) + ")>";
+                + valueFunction.valueAt(interval.getStart()) + ", "
+                + valueFunction.valueAt(interval.getEnd()) + ")>";
     }
 
     ValueFunctionTimesegment<V> unaryOp(UnaryOperator<V> ops) {
-        return createNew(getInterval(), new UnaryValueFunction<V>(ops, getValueFunction()));
+        return new ValueFunctionTimesegment<V>(getInterval(), new UnaryValueFunction<V>(ops, getValueFunction()));
     }
 
     ValueFunctionTimesegment<V> binaryOp(BinaryOperator<V> ops, ValueFunction<V> otherValueFunction) {
-        return createNew(getInterval(), new BinaryValueFunction<V>(ops, this.getValueFunction(), otherValueFunction));
+        return new ValueFunctionTimesegment<V>(getInterval(), new BinaryValueFunction<V>(ops, this.getValueFunction(), otherValueFunction));
     }
 
     @Override
-    public V valueAt(long key) {
+    public Timesegment<V> combineWith(BinaryOperator<V> op, Interval interval, Timesegment<V> curr) {
+
+        BinaryValueFunction<V> function = new BinaryValueFunction<>(op, this.getValueFunction(),
+                (curr instanceof ValueFunctionTimesegment) ? ((ValueFunctionTimesegment<V>) curr).getValueFunction() : curr);
+
+        return new ValueFunctionTimesegment<V>(interval, function);
+
+    }
+
+    @Override
+    public V valueAt(Instant key) {
         checkBounds(key);
         return valueFunction.valueAt(key);
     }
 
     @Override
-    public Instant getStart() {
-        return interval.getStart();
-    }
-
-    @Override
-    public Instant getEnd() {
-        return interval.getEnd();
+    public Timesegment<V> overlap(Interval interval) {
+        return new ValueFunctionTimesegment<>(interval, valueFunction);
     }
 
     @Override
@@ -83,7 +87,6 @@ class ValueFunctionTimesegment<V> implements Serializable, ValueFunction<V>, Tim
         return interval;
     }
 
-    @Override
     public ValueFunction<V> getValueFunction() {
         return valueFunction;
     }
@@ -94,14 +97,14 @@ class ValueFunctionTimesegment<V> implements Serializable, ValueFunction<V>, Tim
     }
 
     @Override
-    public ValueFunctionTimesegment<V> createNew(Interval interval, ValueFunction<V> valueFunction) {
-        return new ValueFunctionTimesegment<V>(interval, valueFunction);
+    public boolean contains(Instant instant) {
+        return interval.contains(instant);
     }
 
-    private void checkBounds(long key) {
-        if (getStart().toEpochMilli() > key || getEnd().toEpochMilli() < key) {
+    private void checkBounds(Instant key) {
+        if (!getInterval().contains(key)) {
             throw new IndexOutOfBoundsException(
-                    "key out of bounds: [" + getStart().toEpochMilli() + ", " + getEnd().toEpochMilli() + ")");
+                    "key out of bounds: [" + getInterval() + ")");
         }
     }
 
@@ -121,17 +124,5 @@ class ValueFunctionTimesegment<V> implements Serializable, ValueFunction<V>, Tim
                 && Objects.equals(toString(), other.toString()) // cowboy hack, but solves problem of nested functions
                 ;
     }
-
-    @SuppressWarnings("rawtypes")
-    static final Comparator<ValueFunctionTimesegment> ORDER_LINE_SEGMENT = new Comparator<ValueFunctionTimesegment>() {
-        @Override
-        public int compare(ValueFunctionTimesegment o1, ValueFunctionTimesegment o2) {
-            long diff = o1.getStart().toEpochMilli() - o2.getStart().toEpochMilli();
-            if (diff == 0) {
-                diff = o1.getEnd().toEpochMilli() - o2.getEnd().toEpochMilli();
-            }
-            return Long.signum(diff);
-        }
-    };
 
 }

@@ -15,6 +15,7 @@
  */
 package fc.timeseries;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
@@ -42,7 +43,7 @@ class OperatorValueFunctions {
         }
 
         @Override
-        public V valueAt(long key) {
+        public V valueAt(Instant key) {
             return ops.apply(lhs.valueAt(key), rhs.valueAt(key));
         }
 
@@ -76,7 +77,7 @@ class OperatorValueFunctions {
         }
 
         @Override
-        public V valueAt(long key) {
+        public V valueAt(Instant key) {
             return value;
         }
 
@@ -175,7 +176,7 @@ class OperatorValueFunctions {
         }
 
         @Override
-        public V valueAt(long key) {
+        public V valueAt(Instant key) {
             return op.apply(valueFunction.valueAt(key), otherValueFunction.valueAt(key));
         }
     }
@@ -190,7 +191,7 @@ class OperatorValueFunctions {
         }
 
         @Override
-        public V valueAt(long key) {
+        public V valueAt(Instant key) {
             return unaryFunction.apply(valueFunction.valueAt(key));
         }
     }

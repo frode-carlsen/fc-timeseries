@@ -15,10 +15,12 @@
  */
 package fc.timeseries;
 
+import java.time.Instant;
+
 /**
  * Simple function of one variable (time). Represents a time-variant function.
  */
 public interface ValueFunction<V> {
 
-    V valueAt(long key);
+    V valueAt(Instant instant);
 }
