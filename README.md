@@ -1,3 +1,5 @@
+[![Known Vulnerabilities](https://snyk.io/test/github/frode-carlsen/fc-timeseries/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/frode-carlsen/fc-timeseries?targetFile=pom.xml)
+
 # fc-timeseries
 Basic timeseries library for managing simple time-variant datatypes of different flavours. Pluggable functions and calculators.
 
